@@ -19,3 +19,18 @@ export function validateExpense(title, amount) {
 export function calculateTotal(expenses) {
   return expenses.reduce((total, expense) => total + expense.amount, 0)
 }
+
+export function calculateTransactionTotals(transactions) {
+  const income = calculateTotal(
+    transactions.filter((transaction) => transaction.type === 'income'),
+  )
+  const expenses = calculateTotal(
+    transactions.filter((transaction) => transaction.type !== 'income'),
+  )
+
+  return {
+    income,
+    expenses,
+    balance: income - expenses,
+  }
+}

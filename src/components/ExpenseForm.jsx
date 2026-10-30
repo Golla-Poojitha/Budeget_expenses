@@ -3,11 +3,12 @@ import { validateExpense } from '../utils/expenses.js'
 
 const CATEGORIES = ['Food', 'Travel', 'Bills', 'Other']
 
-// Props: onAddExpense receives a validated expense; local state holds the form fields and error.
-export default function ExpenseForm({ onAddExpense }) {
+// Props: onAddTransaction receives a validated transaction; local state holds its form fields.
+export default function ExpenseForm({ onAddTransaction }) {
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('Food')
+  const [type, setType] = useState('expense')
   const [error, setError] = useState('')
 
   function handleSubmit(event) {
@@ -18,19 +19,41 @@ export default function ExpenseForm({ onAddExpense }) {
       return
     }
 
-    onAddExpense({
+    onAddTransaction({
       title: title.trim(),
       amount: Number(amount),
       category,
+      type,
     })
     setTitle('')
     setAmount('')
     setCategory('Food')
+    setType('expense')
     setError('')
   }
 
   return (
     <form className="expense-form" onSubmit={handleSubmit} noValidate>
+      <fieldset className="type-toggle">
+        <legend>Type</legend>
+        {['expense', 'income'].map((transactionType) => (
+          <label
+            className={type === transactionType ? 'type-option selected' : 'type-option'}
+            key={transactionType}
+          >
+            <input
+              type="radio"
+              name="transaction-type"
+              value={transactionType}
+              data-cy={`type-${transactionType}`}
+              checked={type === transactionType}
+              onChange={() => setType(transactionType)}
+            />
+            {transactionType === 'income' ? 'Income' : 'Expense'}
+          </label>
+        ))}
+      </fieldset>
+
       <label htmlFor="expense-title">Title</label>
       <input
         id="expense-title"
@@ -38,7 +61,7 @@ export default function ExpenseForm({ onAddExpense }) {
         type="text"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
-        placeholder="e.g. Weekly groceries"
+        placeholder={type === 'income' ? 'e.g. Monthly salary' : 'e.g. Weekly groceries'}
         aria-invalid={Boolean(error && !title.trim())}
         aria-describedby={error ? 'form-error' : undefined}
       />
@@ -78,7 +101,7 @@ export default function ExpenseForm({ onAddExpense }) {
 
       {error && <p className="form-error" id="form-error" role="alert">{error}</p>}
       <button className="primary-button" data-cy="add-expense" type="submit">
-        <span aria-hidden="true">+</span> Add expense
+        <span aria-hidden="true">+</span> Add {type}
       </button>
     </form>
   )
