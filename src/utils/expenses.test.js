@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateTotal, validateExpense } from './expenses.js'
+import { calculateTotal, calculateTransactionTotals, validateExpense } from './expenses.js'
 
 describe('validateExpense', () => {
   it('requires a non-empty title', () => {
@@ -34,5 +34,27 @@ describe('calculateTotal', () => {
 
   it('returns zero for an empty list', () => {
     expect(calculateTotal([])).toBe(0)
+  })
+})
+
+describe('calculateTransactionTotals', () => {
+  it('separates income and expenses and calculates the remaining balance', () => {
+    expect(calculateTransactionTotals([
+      { type: 'income', amount: 2000 },
+      { type: 'expense', amount: 250 },
+      { type: 'expense', amount: 75.5 },
+    ])).toEqual({
+      income: 2000,
+      expenses: 325.5,
+      balance: 1674.5,
+    })
+  })
+
+  it('treats saved entries without a type as expenses', () => {
+    expect(calculateTransactionTotals([{ amount: 25 }])).toEqual({
+      income: 0,
+      expenses: 25,
+      balance: -25,
+    })
   })
 })

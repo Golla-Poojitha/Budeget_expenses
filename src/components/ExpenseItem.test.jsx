@@ -12,6 +12,6 @@ describe('ExpenseItem', () => {
     )
 
     expect(screen.getByText(category === 'Bills' ? 'B' : 'O')).toBeInTheDocument()
-    expect(screen.getByText(category)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(category))).toBeInTheDocument()
   })
 })

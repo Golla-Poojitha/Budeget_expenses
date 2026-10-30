@@ -14,7 +14,7 @@ describe('expense tracker', () => {
 
     expect(screen.getByText('Lunch')).toBeInTheDocument()
     expect(screen.getByText('$250.00', { selector: 'strong' })).toBeInTheDocument()
-    expect(screen.getByText('1 expense')).toBeInTheDocument()
+    expect(screen.getByText('Showing 1 transaction')).toBeInTheDocument()
   })
 
   it('rejects an empty title without adding an expense', async () => {
@@ -25,7 +25,7 @@ describe('expense tracker', () => {
     await user.click(screen.getByRole('button', { name: /add expense/i }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('Enter an expense title.')
-    expect(screen.getByText('0 expenses')).toBeInTheDocument()
+    expect(screen.getByText('Showing 0 transactions')).toBeInTheDocument()
   })
 
   it('rejects non-numeric and non-positive amounts', async () => {
@@ -36,7 +36,7 @@ describe('expense tracker', () => {
     await user.click(screen.getByRole('button', { name: /add expense/i }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('Enter an amount greater than 0.')
-    expect(screen.getByText('0 expenses')).toBeInTheDocument()
+    expect(screen.getByText('Showing 0 transactions')).toBeInTheDocument()
   })
 
   it('filters expenses and updates visible count and total', async () => {
@@ -54,7 +54,7 @@ describe('expense tracker', () => {
 
     expect(screen.getByText('Lunch')).toBeInTheDocument()
     expect(screen.queryByText('Cab')).not.toBeInTheDocument()
-    expect(screen.getByText('1 expense')).toBeInTheDocument()
+    expect(screen.getByText('Showing 1 transaction')).toBeInTheDocument()
     expect(screen.getByText('$250.00', { selector: 'strong' })).toBeInTheDocument()
   })
 
@@ -67,8 +67,8 @@ describe('expense tracker', () => {
     await user.click(screen.getByRole('button', { name: 'Delete Coffee' }))
 
     expect(screen.queryByText('Coffee')).not.toBeInTheDocument()
-    expect(screen.getByText('0 expenses')).toBeInTheDocument()
-    expect(screen.getByText('$0.00', { selector: 'strong' })).toBeInTheDocument()
+    expect(screen.getByText('Showing 0 transactions')).toBeInTheDocument()
+    expect(screen.getByTestId('expense-total')).toHaveTextContent('$0.00')
   })
 
   it('persists expenses across reloads and saves deletions', async () => {
@@ -88,5 +88,39 @@ describe('expense tracker', () => {
 
     await user.click(screen.getByRole('button', { name: 'Delete Groceries' }))
     expect(JSON.parse(window.localStorage.getItem('expense-tracker-expenses'))).toEqual([])
+  })
+
+  it('adds income and calculates the remaining balance after expenses', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('radio', { name: 'Income' }))
+    await user.type(screen.getByLabelText('Title'), 'Paycheck')
+    await user.type(screen.getByLabelText('Amount'), '3000')
+    await user.click(screen.getByRole('button', { name: 'Add income' }))
+
+    await user.type(screen.getByLabelText('Title'), 'Rent')
+    await user.type(screen.getByLabelText('Amount'), '1200')
+    await user.selectOptions(screen.getByLabelText('Category'), 'Bills')
+    await user.click(screen.getByRole('button', { name: 'Add expense' }))
+
+    expect(screen.getByText('Paycheck')).toBeInTheDocument()
+    expect(screen.getByText('+$3000.00')).toBeInTheDocument()
+    expect(screen.getByText('−$1200.00')).toBeInTheDocument()
+    expect(screen.getByTestId('income-total')).toHaveTextContent('$3000.00')
+    expect(screen.getByTestId('expense-total')).toHaveTextContent('$1200.00')
+    expect(screen.getByTestId('balance')).toHaveTextContent('$1800.00')
+    expect(screen.getByText('Showing 2 transactions')).toBeInTheDocument()
+  })
+
+  it('formats a negative balance with the minus sign before the currency symbol', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.type(screen.getByLabelText('Title'), 'Utilities')
+    await user.type(screen.getByLabelText('Amount'), '120')
+    await user.click(screen.getByRole('button', { name: 'Add expense' }))
+
+    expect(screen.getByTestId('balance')).toHaveTextContent('-$120.00')
   })
 })
