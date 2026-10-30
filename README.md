@@ -1,6 +1,7 @@
 # Expense Tracker
 
-A small React app for recording, filtering, and removing expenses.
+A small React app for recording, filtering, and removing expenses. Expense data
+is saved in the browser so it remains available after a reload.
 
 ## Requirements
 
