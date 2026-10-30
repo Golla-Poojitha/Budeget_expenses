@@ -70,4 +70,23 @@ describe('expense tracker', () => {
     expect(screen.getByText('0 expenses')).toBeInTheDocument()
     expect(screen.getByText('$0.00', { selector: 'strong' })).toBeInTheDocument()
   })
+
+  it('persists expenses across reloads and saves deletions', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<App />)
+    await user.type(screen.getByLabelText('Title'), 'Groceries')
+    await user.type(screen.getByLabelText('Amount'), '42.50')
+    await user.selectOptions(screen.getByLabelText('Category'), 'Food')
+    await user.click(screen.getByRole('button', { name: /add expense/i }))
+
+    expect(JSON.parse(window.localStorage.getItem('expense-tracker-expenses'))).toHaveLength(1)
+    unmount()
+
+    render(<App />)
+    expect(screen.getByText('Groceries')).toBeInTheDocument()
+    expect(screen.getByText('$42.50', { selector: 'strong' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Delete Groceries' }))
+    expect(JSON.parse(window.localStorage.getItem('expense-tracker-expenses'))).toEqual([])
+  })
 })

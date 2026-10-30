@@ -1,15 +1,23 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import CategoryFilter from './components/CategoryFilter.jsx'
 import ExpenseForm from './components/ExpenseForm.jsx'
 import ExpenseList from './components/ExpenseList.jsx'
 import { calculateTotal } from './utils/expenses.js'
 
 const ALL_CATEGORIES = 'All'
+const STORAGE_KEY = 'expense-tracker-expenses'
 
 // State for expenses and the active category filter lives here; App accepts no props.
 export default function App() {
-  const [expenses, setExpenses] = useState([])
+  const [expenses, setExpenses] = useState(() => {
+    const savedExpenses = window.localStorage.getItem(STORAGE_KEY)
+    return savedExpenses ? JSON.parse(savedExpenses) : []
+  })
   const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES)
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses))
+  }, [expenses])
 
   const visibleExpenses = useMemo(
     () => selectedCategory === ALL_CATEGORIES

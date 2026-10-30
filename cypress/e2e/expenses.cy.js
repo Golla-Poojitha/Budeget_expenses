@@ -43,4 +43,17 @@ describe('Expense tracker', () => {
     cy.get('[data-cy="total"]').should('contain', '0.00')
     cy.get('[data-cy="count"]').should('contain', '0 expenses')
   })
+
+  it('restores expenses after a page reload', () => {
+    cy.visit('/')
+    cy.get('[data-cy="title"]').type('Groceries')
+    cy.get('[data-cy="amount"]').type('42.50')
+    cy.get('[data-cy="category"]').select('Food')
+    cy.get('[data-cy="add-expense"]').click()
+
+    cy.reload()
+    cy.get('[data-cy="expense-item"]').should('contain', 'Groceries')
+    cy.get('[data-cy="total"]').should('contain', '42.50')
+    cy.get('[data-cy="count"]').should('contain', '1 expense')
+  })
 })
